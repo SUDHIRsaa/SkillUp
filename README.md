@@ -6,10 +6,9 @@ Aptitude & Competitive Coding Platform for students and admins. Full-stack MERN 
 
 - Daily aptitude questions
 - Performance tracking
-- Competitive coding (Judge0 API)
-- Leaderboards
-- OTP authentication
-- Admin dashboard, moderation, analytics
+-- Competitive coding (removed in this deployment)
+-- Leaderboards
+-- Admin dashboard, moderation, analytics
 
 ## Quickstart
 
@@ -29,15 +28,11 @@ Prereqs: Node 18+, MongoDB running locally, PowerShell on Windows.
 - Dev server: `npm --prefix client run dev` → open URL shown (e.g., <http://localhost:5175>)
 - Production build: `npm --prefix client run build` then `npm --prefix client run preview`
 
-3. Judge0 (optional)
+3. Competitive coding
 
-- To enable real code execution, set these in `.env` (root or `server/.env`):
-  - `JUDGE0_URL` = `https://judge0-ce.p.rapidapi.com`
-  - `JUDGE0_API_KEY` = your RapidAPI key
-  The server will automatically add the required `X-RapidAPI-Key` and `X-RapidAPI-Host` headers. If not set, a mock result is returned so the UI still works.
+- Competitive coding / Judge0 integration is not available in this deployment.
 
 ## Notes
 
-- Role-based routes are enforced on the server and client.
-- OTP can be delivered via email/SMS when credentials are configured; otherwise use console logs/mocks.
+-- Role-based routes are enforced on the server and client.
 - Shared UI components live under `client/src/components/ui`.

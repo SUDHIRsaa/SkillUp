@@ -1,7 +1,6 @@
 // SiteSetting model placeholder
 const mongoose = require('mongoose');
 const SiteSettingSchema = new mongoose.Schema({
-  otpTTL: Number,
   defaultDailyQuestions: Number,
   maintenanceMode: Boolean
 });

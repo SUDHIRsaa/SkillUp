@@ -67,7 +67,7 @@ export default function Login() {
               <label className="block text-sm font-medium mb-1">Password</label>
               <div className="relative">
                 <Input name="password" type={showPwd ? 'text' : 'password'} placeholder="••••••••" value={form.password} onChange={onChange} />
-                <button type="button" className="absolute inset-y-0 right-3 my-auto text-gray-500 dark:text-gray-400" onClick={() => setShowPwd(s=>!s)} aria-label="Toggle password">
+                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 flex items-center" onClick={() => setShowPwd(s=>!s)} aria-label="Toggle password">
                   {showPwd ? <EyeSlashIcon className="h-5 w-5"/> : <EyeIcon className="h-5 w-5"/>}
                 </button>
               </div>

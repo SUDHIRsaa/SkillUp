@@ -34,8 +34,6 @@ exports.listAptitudeSubmissions = async (req, res) => {
 };
 const User = require('../models/User');
 const Question = require('../models/Question');
-const CodingChallenge = require('../models/CodingChallenge');
-const Submission = require('../models/Submission');
 const AptitudeSubtopic = require('../models/AptitudeSubtopic');
 // Avoid requiring client-side ES module directly. Provide a small fallback seed used to
 // initialize aptitude subtopics if the DB is empty.
@@ -56,10 +54,9 @@ const TOPICS_SEED = [
 ];
 
 exports.dashboard = async (req, res) => {
-  const [users, questions, challenges] = await Promise.all([
+  const [users, questions] = await Promise.all([
     User.countDocuments(),
     Question.countDocuments(),
-    CodingChallenge.countDocuments(),
   ]);
 
   // Build last 14 days range (UTC)
@@ -81,13 +78,8 @@ exports.dashboard = async (req, res) => {
     { $group: { _id: '$_id.date', users: { $sum: 1 } } },
   ]).catch(()=>[]);
 
-  // Coding daily unique solvers from Submission.timestamp
-  const codingAgg = await Submission.aggregate([
-    { $match: { timestamp: { $gte: startUTC, $lte: endUTC } } },
-    { $project: { userId: 1, date: { $dateToString: { date: '$timestamp', format: '%Y-%m-%d' } } } },
-    { $group: { _id: { date: '$date', userId: '$userId' } } },
-    { $group: { _id: '$_id.date', users: { $sum: 1 } } },
-  ]).catch(()=>[]);
+  // Coding feature removed in this deployment; report zeros
+  const codingAgg = [];
 
   // New users per day from User.createdAt
   const usersAgg = await User.aggregate([
@@ -97,13 +89,13 @@ exports.dashboard = async (req, res) => {
   ]).catch(()=>[]);
 
   const aptitudeMap = Object.fromEntries(aptitudeAgg.map(a => [a._id, a.users]));
-  const codingMap = Object.fromEntries(codingAgg.map(a => [a._id, a.users]));
+  const codingMap = Object.fromEntries(codingAgg.map ? codingAgg.map(a => [a._id, a.users]) : []);
   const newUsersMap = Object.fromEntries(usersAgg.map(a => [a._id, a.count]));
 
   const comparison = allDates.map(d => ({ date: d, aptitude: aptitudeMap[d] || 0, coding: codingMap[d] || 0 }));
   const newUsersDaily = allDates.map(d => ({ date: d, users: newUsersMap[d] || 0 }));
 
-  res.json({ users, questions, challenges, comparison, newUsersDaily });
+  res.json({ users, questions, comparison, newUsersDaily });
 };
 
 exports.listUsers = async (req, res) => {
@@ -138,26 +130,8 @@ exports.unbanUser = async (req, res) => {
 };
 
 exports.listSubmissions = async (req, res) => {
-  const { q, lang, result, page = 1, limit = 20 } = req.query;
-  const filter = {};
-  if (lang) filter.language = String(lang);
-  if (result) filter.result = new RegExp(String(result).trim(), 'i');
-  if (q) {
-    const rx = new RegExp(String(q).trim(), 'i');
-    // Allow searching by userId or challengeId (string contains)
-    filter.$or = [
-      { userId: rx },
-      { challengeId: rx },
-    ];
-  }
-
-  const pageNum = Math.max(1, parseInt(page));
-  const pageSize = Math.max(1, Math.min(100, parseInt(limit)));
-  const [items, total] = await Promise.all([
-    Submission.find(filter).sort({ timestamp: -1 }).skip((pageNum - 1) * pageSize).limit(pageSize),
-    Submission.countDocuments(filter),
-  ]);
-  res.json({ items, total, page: pageNum, limit: pageSize });
+  // Submissions/coding feature removed in this deployment
+  return res.status(410).json({ message: 'Submissions have been removed from this deployment.' });
 };
 
 // List or create aptitude subtopics. Seed from client topic data when empty.

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="480" viewBox="0 0 900 480">
+  <style>
+    .axis { stroke: #333; stroke-width: 1; }
+    .grid { stroke: #ddd; stroke-width: 1; }
+    .label { font-family: Arial, sans-serif; font-size: 14px; fill: #333; }
+    .legend { font-family: Arial, sans-serif; font-size: 13px; }
+  </style>
+  <!-- Background -->
+  <rect x="0" y="0" width="900" height="480" fill="#fff" />
+
+  <!-- Title -->
+  <text x="450" y="28" text-anchor="middle" class="label" style="font-size:18px; font-weight:600;">Sales of Books (in thousand numbers) - 2000 vs 2001</text>
+
+  <!-- Axes -->
+  <line x1="80" y1="60" x2="80" y2="380" class="axis"/>
+  <line x1="80" y1="380" x2="820" y2="380" class="axis"/>
+
+  <!-- Y Grid and labels (0..120 step 20) -->
+  <g class="label" fill="#666">
+    <text x="50" y="380" text-anchor="end">0</text>
+    <text x="50" y="320" text-anchor="end">20</text>
+    <text x="50" y="260" text-anchor="end">40</text>
+    <text x="50" y="200" text-anchor="end">60</text>
+    <text x="50" y="140" text-anchor="end">80</text>
+    <text x="50" y="80" text-anchor="end">100</text>
+    <text x="50" y="40" text-anchor="end">120</text>
+  </g>
+  <g stroke="#eee">
+    <line x1="80" y1="320" x2="820" y2="320" />
+    <line x1="80" y1="260" x2="820" y2="260" />
+    <line x1="80" y1="200" x2="820" y2="200" />
+    <line x1="80" y1="140" x2="820" y2="140" />
+    <line x1="80" y1="80" x2="820" y2="80" />
+    <line x1="80" y1="40" x2="820" y2="40" />
+  </g>
+
+  <!-- Data: B1..B6 positions -->
+  <!-- Values for 2000 (blue): 80,75,95,85,75,70 -->
+  <!-- Values for 2001 (red): 105,65,110,95,95,80 -->
+  <!-- Scale: 1 unit = 3 px vertically roughly (so 120 -> 360 px) -->
+  <!-- Bar group width and spacing -->
+  <g transform="translate(120,380)">
+    <!-- For each branch, draw blue then red bar slightly offset -->
+    <!-- B1 -->
+    <rect x="0" y="-240" width="28" height="240" fill="#3b82f6" />
+    <rect x="36" y="-315" width="28" height="315" fill="#ef4444" />
+    <text x="22" y="18" class="label" text-anchor="middle">B1</text>
+    <text x="22" y="-255" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">80</text>
+    <text x="64" y="-330" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">105</text>
+
+    <!-- B2 -->
+    <g transform="translate(120,0)">
+      <rect x="0" y="-225" width="28" height="225" fill="#3b82f6" />
+      <rect x="36" y="-195" width="28" height="195" fill="#ef4444" />
+      <text x="22" y="18" class="label" text-anchor="middle">B2</text>
+      <text x="22" y="-240" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">75</text>
+      <text x="64" y="-210" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">65</text>
+    </g>
+
+    <!-- B3 -->
+    <g transform="translate(240,0)">
+      <rect x="0" y="-285" width="28" height="285" fill="#3b82f6" />
+      <rect x="36" y="-330" width="28" height="330" fill="#ef4444" />
+      <text x="22" y="18" class="label" text-anchor="middle">B3</text>
+      <text x="22" y="-300" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">95</text>
+      <text x="64" y="-345" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">110</text>
+    </g>
+
+    <!-- B4 -->
+    <g transform="translate(360,0)">
+      <rect x="0" y="-255" width="28" height="255" fill="#3b82f6" />
+      <rect x="36" y="-285" width="28" height="285" fill="#ef4444" />
+      <text x="22" y="18" class="label" text-anchor="middle">B4</text>
+      <text x="22" y="-270" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">85</text>
+      <text x="64" y="-300" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">95</text>
+    </g>
+
+    <!-- B5 -->
+    <g transform="translate(480,0)">
+      <rect x="0" y="-225" width="28" height="225" fill="#3b82f6" />
+      <rect x="36" y="-285" width="28" height="285" fill="#ef4444" />
+      <text x="22" y="18" class="label" text-anchor="middle">B5</text>
+      <text x="22" y="-240" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">75</text>
+      <text x="64" y="-300" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">95</text>
+    </g>
+
+    <!-- B6 -->
+    <g transform="translate(600,0)">
+      <rect x="0" y="-210" width="28" height="210" fill="#3b82f6" />
+      <rect x="36" y="-240" width="28" height="240" fill="#ef4444" />
+      <text x="22" y="18" class="label" text-anchor="middle">B6</text>
+      <text x="22" y="-225" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">70</text>
+      <text x="64" y="-255" class="label" text-anchor="middle" style="font-size:12px;fill:#fff;">80</text>
+    </g>
+  </g>
+
+  <!-- Legend -->
+  <rect x="620" y="52" width="14" height="14" fill="#3b82f6" />
+  <text x="640" y="64" class="legend">2000</text>
+  <rect x="720" y="52" width="14" height="14" fill="#ef4444" />
+  <text x="740" y="64" class="legend">2001</text>
+
+  <!-- X axis label -->
+  <text x="450" y="420" text-anchor="middle" class="label">Branches</text>
+</svg>

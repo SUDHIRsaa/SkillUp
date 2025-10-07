@@ -8,33 +8,8 @@ const Performance = require('../models/Performance');
 const ATTEMPT_CAP = 50;
 
 // Seed leaderboard with sample entries for testing
-router.post('/seed-leaderboard', async (req, res, next) => {
-  try {
-    // create entries for up to 10 existing users, or fallback to placeholder names
-    const users = await User.find({}).limit(10).lean();
-    const items = [];
-    if (users && users.length) {
-      for (let i = 0; i < users.length; i++) {
-        const u = users[i];
-        const score = Math.floor(Math.random() * 100);
-        const doc = await Leaderboard.findOneAndUpdate(
-          { userId: u._id },
-          { $set: { score, college: u.college || '' } },
-          { upsert: true, new: true }
-        );
-        items.push(doc);
-      }
-    } else {
-      // No real users, insert some placeholder docs
-      for (let i = 0; i < 10; i++) {
-        const doc = await Leaderboard.create({ userId: require('mongoose').Types.ObjectId(), score: Math.floor(Math.random() * 100), college: `TestCollege${(i % 3) + 1}` });
-        items.push(doc);
-      }
-    }
-    return res.json({ ok: true, seeded: items.length });
-  } catch (e) {
-    next(e);
-  }
+router.post('/seed-leaderboard', async (req, res) => {
+  return res.status(410).json({ ok: false, message: 'Seeding disabled in this deployment' });
 });
 
 // Refresh leaderboard ranks (recalculate global ranks)

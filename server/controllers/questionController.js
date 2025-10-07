@@ -109,9 +109,57 @@ exports.daily = async (req, res) => {
   res.json(out);
 };
 
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
+const path = require('path');
+
+// configure cloudinary using server-side env vars (idempotent)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+async function uploadLocalFileToCloudinary(localPath) {
+  try {
+    // localPath may start with a leading slash '/images/..' or be relative 'images/...'
+    const rel = localPath.replace(/^\//, '');
+    const abs = path.join(__dirname, '..', '..', 'client', 'public', rel);
+    if (!fs.existsSync(abs)) {
+      throw new Error('Local image not found: ' + abs);
+    }
+    // cloudinary.uploader.upload accepts local file paths
+    const res = await cloudinary.uploader.upload(abs, { folder: 'skillup_images' });
+    return res.secure_url;
+  } catch (e) {
+    console.error('[questionController] uploadLocalFileToCloudinary failed', e?.message || e);
+    throw e;
+  }
+}
+
 exports.create = async (req, res) => {
-  const q = await Question.create(req.body);
-  res.status(201).json(q);
+  try {
+    const payload = { ...req.body };
+    // If imageUrl is provided and appears to be a local path under client/public (e.g. '/images/...')
+    if (payload.imageUrl && typeof payload.imageUrl === 'string') {
+      const val = payload.imageUrl.trim();
+      const isRemote = /^https?:\/\//i.test(val) || /^data:/i.test(val);
+      if (!isRemote && (val.startsWith('/images') || val.startsWith('images/'))) {
+        try {
+          const secure = await uploadLocalFileToCloudinary(val);
+          payload.imageUrl = secure;
+        } catch (e) {
+          // If upload fails, keep the original imageUrl and log the error
+          console.warn('[questionController] failed to upload local image to Cloudinary, saving original imageUrl', e?.message || e);
+        }
+      }
+    }
+    const q = await Question.create(payload);
+    res.status(201).json(q);
+  } catch (e) {
+    console.error('[questionController] create failed', e?.message || e);
+    res.status(500).json({ message: 'Failed to create question' });
+  }
 };
 
 exports.update = async (req, res) => {

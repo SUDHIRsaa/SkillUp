@@ -5,7 +5,6 @@ const links = [
   { href: '/admin', label: 'Dashboard', icon: Cog6ToothIcon },
   { href: '/admin/questions', label: 'MCQs', icon: AcademicCapIcon },
   { href: '/admin/subtopics', label: 'Aptitude Subtopics', icon: AcademicCapIcon },
-  // { href: '/admin/coding', label: 'Coding Qs', icon: CodeBracketSquareIcon },
   { href: '/admin/users', label: 'Users', icon: UserCircleIcon },
   { href: '/admin/aptitude', label: 'Aptitude Subs', icon: AcademicCapIcon },
 ];

@@ -36,14 +36,14 @@ exports.submitAttempt = async (req, res) => {
     const attemptsNorm = Math.min(1, totalAttempts / ATTEMPT_CAP);
     // Composite scoring: 70% accuracy, 30% attempts volume
     const score = Math.round((accuracy * 0.7) + (attemptsNorm * 100 * 0.3));
-    console.log(`[performance] updating leaderboard for user ${req.user.id} score=${score} accuracy=${accuracy} attempts=${totalAttempts} college=${college}`);
+  if ((process.env.NODE_ENV || 'development') !== 'production') console.log(`[performance] updating leaderboard for user ${req.user.id} score=${score} accuracy=${accuracy} attempts=${totalAttempts} college=${college}`);
     await Leaderboard.findOneAndUpdate({ userId: req.user.id }, { $set: { score, college } }, { upsert: true, new: true });
 
     // Recalculate ranks globally and per-college
     const all = await Leaderboard.find({}).sort({ score: -1 }).lean();
     for (let i = 0; i < all.length; i++) {
       await Leaderboard.updateOne({ _id: all[i]._id }, { $set: { rank: i + 1 } });
-      if (i < 5) console.log(`[performance] rank ${i+1} user=${String(all[i].userId)} score=${all[i].score}`);
+  if (i < 5 && (process.env.NODE_ENV || 'development') !== 'production') console.log(`[performance] rank ${i+1} user=${String(all[i].userId)} score=${all[i].score}`);
     }
     // Per-college ranks: recompute only for the user's college to keep this operation small
     const userCollege = college || '';

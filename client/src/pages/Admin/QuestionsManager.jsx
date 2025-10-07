@@ -59,18 +59,97 @@ export default function QuestionsManager() {
   const onUploadImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const fd = new FormData();
-    fd.append('file', file);
-      fd.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET); // Now from .env
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: 'POST',
-        body: fd,
-      });
-    const data = await res.json();
-    if (data.secure_url) setForm(f => ({ ...f, imageUrl: data.secure_url }));
+  const fd = new FormData();
+  // Exact env keys must be referenced here — include the server-style names and keep VITE fallbacks.
+  // Note: browser builds only get VITE_ prefixed vars; server uses process.env.CLOUDINARY_*.
+  const uploadPreset = import.meta.env.CLOUDINARY_UPLOAD_PRESET ?? import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+  const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME ?? import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  // variables intentionally read above; server-side upload endpoint will be used for actual uploading
+  fd.append('file', file);
+    try {
+      // Upload via server endpoint which uses server-side CLOUDINARY_* env vars
+      const res = await fetch(`/api/upload/image`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (res.ok && data.ok && data.secure_url) setForm(f => ({ ...f, imageUrl: data.secure_url }));
+      else setToast({ type: 'error', message: data.message || 'Upload failed' });
+    } catch (err) {
+      setToast({ type: 'error', message: 'Image upload failed. Please provide image URL manually.' });
+    }
   };
   const [toast, setToast] = useState(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkJson, setBulkJson] = useState(`[
+  {
+    "statement": "What is the ratio of the total sales of branch B2 for both years to the total sales of branch B4 for both years?",
+    "options": ["7:9","14:18","13:18","140:180"],
+    "correctAnswer": "7:9",
+    "explanation": "B2 total = 75+65=140; B4 total = 85+95=180; ratio 140:180 -> 7:9.",
+    "difficulty": "easy",
+    "mainTopic": "data-interpretation",
+    "topic": "bar-graph"
+  ,"imageUrl": "/images/bar-graph.svg"
+  },
+  {
+    "statement": "What is the difference between B3 sales in 2001 and B3 sales in 2000?",
+    "options": ["15","10","20","25"],
+    "correctAnswer": "15",
+    "explanation": "B3: 110 (2001) - 95 (2000) = 15.",
+    "difficulty": "easy",
+    "mainTopic": "data-interpretation",
+    "topic": "bar-graph"
+  ,"imageUrl": "/images/bar-graph.svg"
+  },
+  {
+    "statement": "What is the combined sales of branches B1 and B6 in 2001?",
+    "options": ["185","190","175","195"],
+    "correctAnswer": "185",
+    "explanation": "B1 (2001) = 105; B6 (2001) = 80; combined = 185.",
+    "difficulty": "easy",
+    "mainTopic": "data-interpretation",
+    "topic": "bar-graph"
+  ,"imageUrl": "/images/bar-graph.svg"
+  },
+  {
+    "statement": "Which branch recorded the least sales in 2001?",
+    "options": ["B2","B6","B4","B5"],
+    "correctAnswer": "B2",
+    "explanation": "2001 values: B1=105, B2=65, B3=110, B4=95, B5=95, B6=80; smallest is B2 with 65.",
+    "difficulty": "easy",
+    "mainTopic": "data-interpretation",
+    "topic": "bar-graph"
+  ,"imageUrl": "/images/bar-graph.svg"
+  },
+  {
+    "statement": "What is the ratio of B1 to B6 sales in 2000?",
+    "options": ["8:7","4:3","80:70","16:14"],
+    "correctAnswer": "8:7",
+    "explanation": "B1 (2000)=80, B6 (2000)=70; ratio 80:70 -> 8:7.",
+    "difficulty": "easy",
+    "mainTopic": "data-interpretation",
+    "topic": "bar-graph"
+  ,"imageUrl": "/images/bar-graph.svg"
+  },
+  {
+    "statement": "By what percent did sales of branch B5 increase from 2000 to 2001?",
+    "options": ["26.67%","20%","25%","27%"],
+    "correctAnswer": "26.67%",
+    "explanation": "B5: 75 -> 95. Increase = 20/75 = 26.666...%",
+    "difficulty": "medium",
+    "mainTopic": "data-interpretation",
+    "topic": "bar-graph"
+  ,"imageUrl": "/images/bar-graph.svg"
+  },
+  {
+    "statement": "Which branch had the highest absolute growth in sales from 2000 to 2001?",
+    "options": ["B3","B1","B4","B5"],
+    "correctAnswer": "B1",
+    "explanation": "Growth: B1 +25, B2 -10, B3 +15, B4 +10, B5 +20, B6 +10. Highest absolute growth is B1 (+25).",
+    "difficulty": "medium",
+    "mainTopic": "data-interpretation",
+    "topic": "bar-graph"
+  ,"imageUrl": "/images/bar-graph.svg"
+  }
+]`);
 
   
 
@@ -99,6 +178,31 @@ export default function QuestionsManager() {
     await load();
   };
 
+  const onBulkImport = async () => {
+    let arr;
+    try {
+      arr = JSON.parse(bulkJson);
+      if (!Array.isArray(arr)) throw new Error('Provide an array of question objects');
+    } catch (e) {
+      setToast({ type: 'error', message: 'Invalid JSON: ' + (e.message || e) });
+      return;
+    }
+    let success = 0;
+    let failed = 0;
+    for (const qItem of arr) {
+      try {
+        await http.post('/api/questions', qItem);
+        success++;
+      } catch (err) {
+        failed++;
+        console.error('Bulk insert failed for item', qItem, err?.response?.data || err?.message || err);
+      }
+    }
+    setToast({ type: 'success', message: `Imported ${success} questions, ${failed} failed` });
+    setBulkOpen(false);
+    await load();
+  };
+
   return (
     <Layout>
       <div className="flex">
@@ -107,6 +211,22 @@ export default function QuestionsManager() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card title="Create Question">
                 <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div />
+                    <div className="flex gap-2">
+                      <button type="button" className="text-sm px-3 py-1 border rounded" onClick={()=>setBulkOpen(o=>!o)}>{bulkOpen? 'Close Bulk Import' : 'Bulk Import (10-12)'}</button>
+                    </div>
+                  </div>
+                  {bulkOpen && (
+                    <div className="mb-3">
+                      <label className="text-sm font-medium">Bulk import JSON (array of questions)</label>
+                      <textarea value={bulkJson} onChange={(e)=>setBulkJson(e.target.value)} className="block w-full mt-1 h-56 rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 p-2 text-xs" />
+                      <div className="flex gap-2 mt-2">
+                        <Button onClick={onBulkImport}>Import</Button>
+                        <Button variant="secondary" onClick={()=>{ setBulkOpen(false); setBulkJson(''); }}>Cancel</Button>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-start gap-3">
                     <div className="flex flex-col gap-2 w-full">
                       <label className="text-sm font-medium">Image (optional)</label>

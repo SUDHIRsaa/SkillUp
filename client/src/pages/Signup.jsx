@@ -192,7 +192,7 @@ export default function Signup() {
             <div>
               <div className="relative">
                 <Input label="Password" name="password" type={showPwd ? 'text' : 'password'} placeholder="Create a password" value={form.password} onChange={onChange} error={!passwordValid && form.password ? 'Min 8 chars with upper, lower, number.' : ''} />
-                <button type="button" className="absolute inset-y-0 right-3 my-auto text-gray-500 dark:text-gray-400" onClick={() => setShowPwd(s=>!s)}>
+                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 flex items-center" onClick={() => setShowPwd(s=>!s)}>
                   {showPwd ? <EyeSlashIcon className="h-5 w-5"/> : <EyeIcon className="h-5 w-5"/>}
                 </button>
               </div>
@@ -207,7 +207,7 @@ export default function Signup() {
             <div>
               <div className="relative">
                 <Input label="Confirm Password" name="confirmPassword" type={showPwd2 ? 'text' : 'password'} placeholder="Confirm your password" value={form.confirmPassword} onChange={onChange} error={form.confirmPassword && form.password !== form.confirmPassword ? 'Passwords do not match' : ''} />
-                <button type="button" className="absolute inset-y-0 right-3 my-auto text-gray-500 dark:text-gray-400" onClick={() => setShowPwd2(s=>!s)}>
+                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 flex items-center" onClick={() => setShowPwd2(s=>!s)}>
                   {showPwd2 ? <EyeSlashIcon className="h-5 w-5"/> : <EyeIcon className="h-5 w-5"/>}
                 </button>
               </div>

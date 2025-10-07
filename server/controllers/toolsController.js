@@ -3,8 +3,8 @@ const fetch = global.fetch || require('node-fetch');
 const fs = require('fs');
 
 function getProviderKey() {
-  // Only Gemini is supported now; prefer GEMINI_API_KEY
-  return process.env.GEMINI_API_KEY || null;
+  // LLM features disabled per project request
+  return null;
 }
 
 function safeSerialize(obj) {
@@ -17,88 +17,9 @@ function safeSerialize(obj) {
 
 // makeSystemPrompt removed — generation features disabled per project request
 
-async function callLLM(key, prompt, max_tokens = 800) {
-  // Only Gemini is supported now. This function posts prompt text to Gemini generateText endpoints.
-  const geminiKey = process.env.GEMINI_API_KEY || key;
-  const geminiModel = process.env.GEMINI_MODEL || 'text-bison-001';
-  const apiHost = process.env.GEMINI_API_HOST || 'https://generativelanguage.googleapis.com';
-
-  const promptText = Array.isArray(prompt)
-    ? prompt.map(m => `${(m.role || 'user').toUpperCase()}: ${m.content || ''}`).join('\n')
-    : String(prompt || '');
-
-  const candidateModels = geminiModel.startsWith('models/') ? [geminiModel] : [geminiModel, `models/${geminiModel}`];
-  const candidateBases = process.env.GEMINI_API_URL ? [process.env.GEMINI_API_URL] : [`${apiHost}/v1beta2/models/`, `${apiHost}/v1/models/`];
-  const candidateUrls = candidateBases.flatMap(base => candidateModels.map(m => `${base}${encodeURIComponent(m)}:generateText`));
-
-  const headersForKey = (useBearer) => ({ 'Content-Type': 'application/json', ...(useBearer ? { Authorization: `Bearer ${geminiKey}` } : {}) });
-
-  const structuredBody = {
-    prompt: { text: { text: [promptText] } },
-    temperature: Number(process.env.GEMINI_TEMPERATURE || 0.2),
-    maxOutputTokens: Math.min(Number(max_tokens || 800), 2048),
-  };
-
-  const fallbackBodies = [
-    { prompt: promptText },
-    { prompt: { text: promptText } },
-    { input: promptText },
-    { instances: [{ content: promptText }] },
-  ];
-
-  const tryPost = async (url, payload, useBearer) => {
-    const finalUrl = useBearer ? url : (url + (url.includes('?') ? '&' : '?') + `key=${encodeURIComponent(geminiKey)}`);
-    const res = await fetch(finalUrl, { method: 'POST', headers: headersForKey(useBearer), body: JSON.stringify(payload) });
-    if (!res.ok) {
-      let t;
-      try { t = await res.json(); } catch (_) { t = await res.text(); }
-      const msg = (t && t.error && (t.error.message || t.error)) ? (t.error.message || JSON.stringify(t.error)) : (typeof t === 'string' ? t : JSON.stringify(t));
-      const e = new Error(`Gemini error: ${res.status} ${msg}`);
-      e.status = res.status;
-      e.raw = t;
-      e.attempt = safeSerialize(payload);
-      throw e;
-    }
-    return res.json();
-  };
-
-  let lastError = null;
-  for (const urlBase of candidateUrls) {
-    for (const useBearer of [false, true]) {
-      try {
-        const resp = await tryPost(urlBase, structuredBody, useBearer);
-        const text = extractTextFromGeminiResponse(resp);
-        return { choices: [{ message: { content: text } }] };
-      } catch (err) {
-        lastError = err;
-        const m = String(err.message || '').toLowerCase();
-        if (m.includes('requested entity was not found') || m.includes('not found') || err.status === 404) continue;
-      }
-    }
-  }
-
-  const attempts = [];
-  for (const fb of fallbackBodies) {
-    for (const urlBase of candidateUrls) {
-      for (const useBearer of [false, true]) {
-        try {
-          const resp = await tryPost(urlBase, fb, useBearer);
-          const text = extractTextFromGeminiResponse(resp);
-          return { choices: [{ message: { content: text } }] };
-        } catch (err) {
-          attempts.push({ url: urlBase, useBearer, payload: safeSerialize(fb), error: err.raw || err.message });
-          lastError = err;
-        }
-      }
-    }
-  }
-
-  if (lastError) {
-    try { lastError.attempts = attempts; } catch (_) {}
-    throw lastError;
-  }
-
-  throw new Error('No Gemini endpoints responded successfully');
+async function callLLM() {
+  // Disabled. LLM integrations have been removed per project directive.
+  throw new Error('LLM support is disabled on this server');
 }
 
 function extractTextFromGeminiResponse(resp) {
@@ -154,31 +75,5 @@ exports._test = {
 
 // Diagnostics endpoint: checks for OPENAI_API_KEY and optionally makes a tiny test call
 exports.diagnostics = async (req, res, next) => {
-  try {
-    const key = getProviderKey();
-    const provider = (process.env.LLM_PROVIDER || 'openai').toLowerCase();
-    const model = process.env.GEMINI_MODEL || 'gemini-1.0';
-    if (!key) return res.json({ ok: false, keyPresent: false, message: 'LLM API key not configured on server process' });
-    // Make a small low-cost call to verify the key/model works
-    try {
-      const messages = [
-        { role: 'system', content: 'You are a concise assistant. Reply with a single word: OK' },
-        { role: 'user', content: 'Ping' }
-      ];
-  const out = await callLLM(key, messages, 50);
-      const txt = out.choices?.[0]?.message?.content || '';
-      return res.json({ ok: true, keyPresent: true, provider, modelUsed: model, responseSnippet: (txt || '').slice(0, 200) });
-    } catch (callErr) {
-      const raw = callErr.raw || {};
-      // Build a sanitized debug object to avoid circular JSON
-      const debug = { raw: safeSerialize(raw) };
-      try {
-        if (callErr.attempt) debug.attempt = safeSerialize(callErr.attempt);
-        if (callErr.attempts) debug.attempts = safeSerialize(callErr.attempts);
-      } catch (_) {}
-      return res.status(502).json({ ok: false, keyPresent: true, provider, error: callErr.message || String(callErr), debug });
-    }
-  } catch (e) {
-    next(e);
-  }
+  return res.json({ ok: false, message: 'LLM integrations are disabled on this server' });
 };

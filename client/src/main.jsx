@@ -13,7 +13,7 @@ import Aptitude from './pages/User/Aptitude.jsx';
 import AptitudeTopics from './pages/User/AptitudeTopics.jsx';
 import AptitudeTopicDetail from './pages/User/AptitudeTopicDetail.jsx';
 import AptitudeTopicView from './pages/User/AptitudeTopicView.jsx';
-// Coding editor removed
+// ...
 import Leaderboard from './pages/User/Leaderboard.jsx';
 import Profile from './pages/User/Profile.jsx';
 import ProfileEdit from './pages/User/ProfileEdit.jsx';
@@ -21,10 +21,10 @@ import AptitudeHistory from './pages/User/AptitudeHistory.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import Users from './pages/Admin/Users.jsx';
 import QuestionsManager from './pages/Admin/QuestionsManager.jsx';
-import CodingManager from './pages/Admin/CodingManager.jsx'; // kept file but route removed
+// ...
 import ContestsManager from './pages/Admin/ContestsManager.jsx';
 import Moderation from './pages/Admin/Moderation.jsx';
-import SubmissionsInspector from './pages/Admin/SubmissionsInspector.jsx';
+// ...
 import SiteSettings from './pages/Admin/SiteSettings.jsx';
 import AptitudeSubtopics from './pages/Admin/AptitudeSubtopics.jsx';
 
@@ -59,7 +59,6 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ) },
   // Flashcards and MCQ generation pages removed
-  // '/coding' route removed
   { path: '/leaderboard', element: <Leaderboard /> },
   
   { path: '/profile', element: (
@@ -97,7 +96,7 @@ const router = createBrowserRouter([
         <AptitudeSubtopics />
       </ProtectedRoute>
     ) },
-  // '/admin/coding' admin route removed
+  // ...
   { path: '/admin/contests', element: (
       <ProtectedRoute roles={['admin','moderator']}>
         <ContestsManager />
@@ -108,11 +107,7 @@ const router = createBrowserRouter([
         <Moderation />
       </ProtectedRoute>
     ) },
-  { path: '/admin/submissions', element: (
-      <ProtectedRoute roles={['admin','moderator']}>
-        <SubmissionsInspector />
-      </ProtectedRoute>
-    ) },
+  // ...
   { path: '/admin/settings', element: (
       <ProtectedRoute roles={['admin','moderator']}>
         <SiteSettings />

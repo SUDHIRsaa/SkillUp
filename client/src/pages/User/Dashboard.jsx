@@ -15,10 +15,8 @@ export default function Dashboard() {
       try {
         setPerf(await fetchPerformance());
       } catch {}
-      try {
-        const r = await http.get('/api/coding/submissions/me');
-        setRecentCode(r.data || []);
-      } catch {}
+      // Coding/submissions feature removed in this deployment; do not call server
+      setRecentCode([]);
       try {
         const r = await http.get('/api/performance/me');
         setRecentApt(r.data?.dailyStats?.slice(-5) || []);
@@ -46,16 +44,8 @@ export default function Dashboard() {
             <div className="text-sm text-gray-600 dark:text-gray-300">No attempts yet today.</div>
           )}
         </Card>
-        <Card title="Recent Code Submissions">
-          <ul className="text-sm space-y-1 max-h-40 overflow-auto">
-            {recentCode.slice(0,5).map(s => (
-              <li key={s._id} className="flex items-center justify-between">
-                <span className="truncate">{s.language} • {s.result}</span>
-                <span className="text-gray-500">{new Date(s.timestamp).toLocaleDateString()}</span>
-              </li>
-            ))}
-            {!recentCode.length && <li className="text-gray-600 dark:text-gray-300">No submissions yet.</li>}
-          </ul>
+        <Card title="Coding / Submissions (disabled)">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Competitive coding and code submissions are not available in this deployment.</div>
         </Card>
       </div>
 

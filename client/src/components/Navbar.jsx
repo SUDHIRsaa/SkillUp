@@ -25,7 +25,7 @@ export default function Navbar({ onToggleTheme, theme }) {
           <a href="/admin/questions" className={linkClass}><AcademicCapIcon className="h-4 w-4"/> MCQs</a>
           {/* Coding Qs removed */}
           <a href="/admin/users" className={linkClass}><UserCircleIcon className="h-4 w-4"/> Users</a>
-          <a href="/admin/submissions" className={linkClass}><TrophyIcon className="h-4 w-4"/> Coding Subs</a>
+          {/* Coding submissions page removed */}
           <a href="/admin/aptitude" className={linkClass}><AcademicCapIcon className="h-4 w-4"/> Aptitude Subs</a>
         </>
       )}

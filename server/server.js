@@ -13,33 +13,39 @@ if (!process.env.DB_URI) {
   const alt = dotenv.config();
   if (!envLoaded.parsed && alt.parsed) envLoaded = alt;
 }
-if (envLoaded?.parsed) {
-  console.log('Env loaded');
-}
+
 
 const app = express();
 
 // Middleware
 app.use(helmet());
 // Explicit CORS config to allow Authorization and common headers for preflight
-app.use(cors({ origin: true, credentials: true, allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'] }));
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  // include Cache-Control (and any other common headers) so preflight accepts requests from the client
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With', 'Cache-Control']
+}));
+// Extra preflight middleware: ensure Access-Control-Allow-Headers contains Cache-Control
+app.use((req, res, next) => {
+  // mirror origin for credentials-enabled CORS
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With, Cache-Control');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 // allow larger payloads (5mb) for note transfer/upload metadata
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(require('./middleware/maintenance'));
 
-// Provider logging (Gemini-only)
-const llmProvider = (process.env.LLM_PROVIDER || 'gemini').toLowerCase();
-console.log('[server] LLM_PROVIDER =', llmProvider);
-if (process.env.GEMINI_API_KEY) console.log('[server] GEMINI_API_KEY is present'); else console.log('[server] GEMINI_API_KEY not present');
-console.log('[server] GEMINI_MODEL =', process.env.GEMINI_MODEL || '(not set, using default)');
-
-// Quick sanity-check: warn if any configured key looks like a GitHub token (common mistake)
-const anyKey = process.env.GEMINI_API_KEY || '';
-if (anyKey && (/^github_pat_|^ghp_/i).test(anyKey)) {
-  console.warn('[server] WARNING: Detected a GitHub token-like string in environment variables. GitHub tokens will not work with OpenAI/Gemini APIs. Please set the proper LLM API key as instructed and restart the server.');
-}
+// LLM support disabled
+if ((process.env.NODE_ENV || 'development') !== 'production') 
 
 // DB
 connectDB();
@@ -48,17 +54,17 @@ connectDB();
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'skillup-server' }));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/questions', require('./routes/questionRoutes'));
-app.use('/api/coding', require('./routes/codingRoutes'));
 app.use('/api/performance', require('./routes/performanceRoutes'));
 app.use('/api/leaderboard', require('./routes/leaderboardRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/tools', require('./routes/toolsRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
 
 // Dev-only helpers (seed DB) - enabled only outside production
 if ((process.env.NODE_ENV || 'development') !== 'production') {
   try {
     app.use('/api/dev', require('./routes/devRoutes'));
-    console.log('[server] dev routes mounted at /api/dev');
+    
   } catch (e) {
     console.warn('[server] failed to mount dev routes', e?.message || e);
   }
@@ -71,7 +77,9 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 4000;
-const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const server = app.listen(PORT, () => {
+  if ((process.env.NODE_ENV || 'development') !== 'production') console.log(`Server running on port ${PORT}`);
+});
 
 server.on('error', (err) => {
   if (err && err.code === 'EADDRINUSE') {

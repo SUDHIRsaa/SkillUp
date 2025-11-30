@@ -10,10 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,30 +17,26 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-     
+          node-version: 20
+          cache: none
 
-      # INSTALL AND BUILD SERVER
+      # SERVER INSTALL & BUILD
       - name: Install server dependencies
-        run: |
-          cd server
-          npm install
+        working-directory: ./server
+        run: npm install
 
       - name: Build server
-        run: |
-          cd server
-          npm run build --if-present
+        working-directory: ./server
+        run: npm run build --if-present
 
-      # INSTALL AND BUILD CLIENT (React / Vite)
+      # CLIENT INSTALL & BUILD
       - name: Install client dependencies
-        run: |
-          cd client
-          npm install
+        working-directory: ./client
+        run: npm install
 
       - name: Build client
-        run: |
-          cd client
-          npm run build
+        working-directory: ./client
+        run: npm run build
 
-      - name: Done!
-        run: echo "CI Passed Successfully 🚀"
+      - name: Done
+        run: echo "CI Completed Successfully"

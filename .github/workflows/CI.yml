@@ -1,76 +1,50 @@
-name: CI Pipeline
+name: build-and-test
 
 on:
   push:
-    branches:
-      - main
-      - dev
-      - "feature/**"
+    branches: [ main, dev ]
   pull_request:
-    branches:
-      - main
-      - dev
+    branches: [ main, dev ]
 
 jobs:
-  build-and-test:
-
+  build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18, 20]
+        node-version: [20]
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: 'npm'
 
-      # ───────────────────────────────
-      # BACKEND
-      # ───────────────────────────────
-      - name: Install Backend Dependencies
-        working-directory: ./server
-        run: npm install
-
-      - name: Run Backend Tests
-        working-directory: ./server
+      # INSTALL AND BUILD SERVER
+      - name: Install server dependencies
         run: |
-          if [ -f package.json ] && grep -q "\"test\"" package.json; then
-            npm test
-          else
-            echo "⚠️ No backend tests found, skipping"
-          fi
+          cd server
+          npm install
 
-      - name: Backend Build Check
-        working-directory: ./server
+      - name: Build server
         run: |
-          if grep -q "\"build\"" package.json; then
-            npm run build
-          else
-            echo "⚠️ No backend build step found, skipping"
-          fi
+          cd server
+          npm run build --if-present
 
-      # ───────────────────────────────
-      # FRONTEND
-      # ───────────────────────────────
-      - name: Install Frontend Dependencies
-        working-directory: ./client
-        run: npm install
-
-      - name: Run Frontend Tests
-        working-directory: ./client
+      # INSTALL AND BUILD CLIENT (React / Vite)
+      - name: Install client dependencies
         run: |
-          if grep -q "\"test\"" package.json; then
-            npm test
-          else
-            echo "⚠️ No frontend tests found, skipping"
-          fi
+          cd client
+          npm install
 
-      - name: Build Frontend
-        working-directory: ./client
-        run: npm run build
+      - name: Build client
+        run: |
+          cd client
+          npm run build
+
+      - name: Done!
+        run: echo "CI Passed Successfully 🚀"

@@ -38,13 +38,13 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
-// allow larger payloads (5mb) for note transfer/upload metadata
+
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(require('./middleware/maintenance'));
 
-// LLM support disabled
+
 if ((process.env.NODE_ENV || 'development') !== 'production') 
 
 // DB

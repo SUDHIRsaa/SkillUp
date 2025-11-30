@@ -18,25 +18,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-        
 
-      # SERVER INSTALL & BUILD
-      - name: Install server dependencies
-        working-directory: ./server
-        run: npm install
-
-      - name: Build server
-        working-directory: ./server
-        run: npm run build --if-present
-
-      # CLIENT INSTALL & BUILD
+      # CLIENT
       - name: Install client dependencies
-        working-directory: ./client
         run: npm install
+        working-directory: client
+
+      - name: Show client node_modules
+        run: ls -la
+        working-directory: client/node_modules/.bin
 
       - name: Build client
-        working-directory: ./client
         run: npm run build
+        working-directory: client
 
-      - name: Done
-        run: echo "CI Completed Successfully"
+      # SERVER
+      - name: Install server dependencies
+        run: npm install
+        working-directory: server
+
+      - name: Build server
+        run: npm run build --if-present
+        working-directory: server

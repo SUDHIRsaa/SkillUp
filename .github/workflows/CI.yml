@@ -19,24 +19,27 @@ jobs:
         with:
           node-version: 20
 
-      # CLIENT
+      # Install & Build CLIENT
       - name: Install client dependencies
+        working-directory: ./client
         run: npm install
-        working-directory: client
 
-      - name: Show client node_modules
-        run: ls -la
-        working-directory: client/node_modules/.bin
+      - name: Fix vite permissions   # <— THIS FIXES YOUR ERROR
+        working-directory: ./client/node_modules/.bin
+        run: chmod +x vite
 
       - name: Build client
+        working-directory: ./client
         run: npm run build
-        working-directory: client
 
-      # SERVER
+      # Install & Build SERVER
       - name: Install server dependencies
+        working-directory: ./server
         run: npm install
-        working-directory: server
 
       - name: Build server
+        working-directory: ./server
         run: npm run build --if-present
-        working-directory: server
+
+      - name: CI Completed
+        run: echo "CI Pipeline passed successfully 🚀"

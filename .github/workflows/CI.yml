@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'none'
+     
 
       # INSTALL AND BUILD SERVER
       - name: Install server dependencies
